@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create vite@latest frontend -- --template react)",
+      "Bash(node --version)",
+      "Bash(python3 -m venv:*)",
+      "Bash(source:*)",
+      "Bash(pip install:*)",
+      "Bash(python app.py:*)",
+      "Bash(curl:*)",
+      "Bash(npm --version)",
+      "Bash(npm install)",
+      "Bash(npm run dev:*)"
+    ]
+  }
+}
