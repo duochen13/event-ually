@@ -2,6 +2,10 @@
 
 A full-stack web application with Flask backend and React frontend demonstrating CRUD operations.
 
+## UI Screenshot
+
+![Task Manager UI](./asset/ui_v0.png)
+
 ## Features
 
 - RESTful API with Flask
