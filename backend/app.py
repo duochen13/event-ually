@@ -2,12 +2,22 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from config import Config
 from models import db, Task
+import os
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
 # Initialize extensions
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}})
+# Allow both local development and production URLs
+allowed_origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    os.environ.get("FRONTEND_URL", "")
+]
+# Remove empty strings from allowed_origins
+allowed_origins = [origin for origin in allowed_origins if origin]
+
+CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
 db.init_app(app)
 
 # Create tables
