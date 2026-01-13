@@ -176,6 +176,38 @@ lsof -ti:5173 | xargs kill -9
 - Backend: Activate virtual environment and reinstall dependencies
 - Frontend: Run `npm install` in the frontend directory
 
+## Deployment
+
+This application is configured for deployment on multiple platforms:
+
+### Render (Backend)
+- Configuration: `render.yaml`
+- Automatically deploys Flask backend as a web service
+- Uses Gunicorn for production serving
+- SQLite database included
+
+### Vercel (Frontend)
+- Configuration: `vercel.json`
+- Automatically deploys React frontend
+- Optimized build with Vite
+- Update `VITE_API_URL` in frontend before deploying
+
+## Changelog
+
+### 2026-01-13
+- Added deployment configuration for Render (backend) and Vercel (frontend)
+- Added `render.yaml` with Flask backend deployment settings using Gunicorn
+- Added `vercel.json` with React frontend deployment settings
+- Added UI screenshot to README showing the task manager interface
+- Updated README with deployment instructions and troubleshooting guide
+
+### Initial Release
+- Full-stack task manager with Flask backend and React frontend
+- RESTful API with CRUD operations
+- SQLite database with SQLAlchemy ORM
+- Responsive UI with gradient design
+- Task completion tracking
+
 ## Next Steps
 
 Consider adding:
