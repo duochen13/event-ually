@@ -198,6 +198,9 @@ This application is configured for deployment on multiple platforms:
 - Added deployment configuration for Render (backend) and Vercel (frontend)
 - Added `render.yaml` with Flask backend deployment settings using Gunicorn
 - Added `vercel.json` with React frontend deployment settings
+- Added comprehensive `DEPLOYMENT.md` guide with step-by-step instructions
+- Added `frontend/.env.example` for environment variable configuration
+- Added `auto_commit.sh` automation script for AI-assisted daily updates
 - Added UI screenshot to README showing the task manager interface
 - Updated README with deployment instructions and troubleshooting guide
 
