@@ -31,6 +31,7 @@
   mask-composite: exclude;
   opacity: 0;
   transition: opacity 0.3s;
+  pointer-events: none;
 }
 
 .chat-input-container:focus-within::before {
@@ -100,6 +101,7 @@
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
   opacity: 0;
   transition: opacity 0.2s;
+  pointer-events: none;
 }
 
 .send-button:hover:not(:disabled)::before {
