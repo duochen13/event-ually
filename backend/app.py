@@ -94,7 +94,7 @@ def send_message(conversation_id):
         conversation_id=conversation_id,
         role='user',
         content=data['content'],
-        metadata=json.dumps(data.get('metadata', {}))
+        meta_data=json.dumps(data.get('metadata', {}))
     )
     db.session.add(user_message)
 
@@ -106,7 +106,7 @@ def send_message(conversation_id):
         conversation_id=conversation_id,
         role='assistant',
         content=ai_response_content,
-        metadata=json.dumps({'model': 'claude-sonnet-4-5'})
+        meta_data=json.dumps({'model': 'claude-sonnet-4-5'})
     )
     db.session.add(assistant_message)
 

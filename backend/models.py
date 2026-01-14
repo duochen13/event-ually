@@ -37,7 +37,7 @@ class Message(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Optional metadata for context and data sources used
-    metadata = db.Column(db.Text, nullable=True)  # JSON string for flexible metadata
+    meta_data = db.Column(db.Text, nullable=True)  # JSON string for flexible metadata
 
     def to_dict(self):
         """Convert model to dictionary for JSON serialization"""
@@ -47,7 +47,7 @@ class Message(db.Model):
             'role': self.role,
             'content': self.content,
             'created_at': self.created_at.isoformat(),
-            'metadata': json.loads(self.metadata) if self.metadata else {}
+            'metadata': json.loads(self.meta_data) if self.meta_data else {}
         }
 
 class DataSource(db.Model):
