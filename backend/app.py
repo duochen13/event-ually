@@ -1,20 +1,20 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from config import Config
-from models import db, Task
+from models import db, Conversation, Message, DataSource, Context
 import os
+import json
+from datetime import datetime
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
 # Initialize extensions
-# Allow both local development and production URLs
 allowed_origins = [
     "http://localhost:5173",
     "http://localhost:3000",
     os.environ.get("FRONTEND_URL", "")
 ]
-# Remove empty strings from allowed_origins
 allowed_origins = [origin for origin in allowed_origins if origin]
 
 CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
@@ -24,71 +24,267 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
-# ==================== API ROUTES ====================
+# ==================== CONVERSATION ROUTES ====================
 
-@app.route('/api/tasks', methods=['GET'])
-def get_tasks():
-    """READ: Get all tasks"""
-    tasks = Task.query.order_by(Task.created_at.desc()).all()
-    return jsonify([task.to_dict() for task in tasks]), 200
+@app.route('/api/conversations', methods=['GET'])
+def get_conversations():
+    """Get all conversations"""
+    conversations = Conversation.query.order_by(Conversation.updated_at.desc()).all()
+    return jsonify([conv.to_dict() for conv in conversations]), 200
 
-@app.route('/api/tasks/<int:task_id>', methods=['GET'])
-def get_task(task_id):
-    """READ: Get a single task by ID"""
-    task = Task.query.get_or_404(task_id)
-    return jsonify(task.to_dict()), 200
+@app.route('/api/conversations', methods=['POST'])
+def create_conversation():
+    """Create a new conversation"""
+    data = request.get_json() or {}
+    title = data.get('title', f'Conversation {datetime.now().strftime("%Y-%m-%d %H:%M")}')
 
-@app.route('/api/tasks', methods=['POST'])
-def create_task():
-    """CREATE: Create a new task"""
-    data = request.get_json()
-
-    if not data or not data.get('title'):
-        return jsonify({'error': 'Title is required'}), 400
-
-    task = Task(
-        title=data['title'],
-        description=data.get('description', ''),
-        completed=data.get('completed', False)
-    )
-
-    db.session.add(task)
+    conversation = Conversation(title=title)
+    db.session.add(conversation)
     db.session.commit()
 
-    return jsonify(task.to_dict()), 201
+    return jsonify(conversation.to_dict()), 201
 
-@app.route('/api/tasks/<int:task_id>', methods=['PUT'])
-def update_task(task_id):
-    """UPDATE: Update an existing task"""
-    task = Task.query.get_or_404(task_id)
+@app.route('/api/conversations/<int:conversation_id>', methods=['GET'])
+def get_conversation(conversation_id):
+    """Get a specific conversation with its messages"""
+    conversation = Conversation.query.get_or_404(conversation_id)
+    messages = Message.query.filter_by(conversation_id=conversation_id).order_by(Message.created_at.asc()).all()
+
+    return jsonify({
+        'conversation': conversation.to_dict(),
+        'messages': [msg.to_dict() for msg in messages]
+    }), 200
+
+@app.route('/api/conversations/<int:conversation_id>', methods=['DELETE'])
+def delete_conversation(conversation_id):
+    """Delete a conversation and all its messages"""
+    conversation = Conversation.query.get_or_404(conversation_id)
+    db.session.delete(conversation)
+    db.session.commit()
+
+    return jsonify({'message': 'Conversation deleted successfully'}), 200
+
+@app.route('/api/conversations/<int:conversation_id>/title', methods=['PUT'])
+def update_conversation_title(conversation_id):
+    """Update conversation title"""
+    conversation = Conversation.query.get_or_404(conversation_id)
+    data = request.get_json()
+
+    if not data or 'title' not in data:
+        return jsonify({'error': 'Title is required'}), 400
+
+    conversation.title = data['title']
+    db.session.commit()
+
+    return jsonify(conversation.to_dict()), 200
+
+# ==================== MESSAGE ROUTES ====================
+
+@app.route('/api/conversations/<int:conversation_id>/messages', methods=['POST'])
+def send_message(conversation_id):
+    """Send a message and get AI response"""
+    conversation = Conversation.query.get_or_404(conversation_id)
+    data = request.get_json()
+
+    if not data or 'content' not in data:
+        return jsonify({'error': 'Message content is required'}), 400
+
+    # Create user message
+    user_message = Message(
+        conversation_id=conversation_id,
+        role='user',
+        content=data['content'],
+        metadata=json.dumps(data.get('metadata', {}))
+    )
+    db.session.add(user_message)
+
+    # Get AI response (placeholder for now)
+    ai_response_content = get_ai_response(conversation_id, data['content'])
+
+    # Create assistant message
+    assistant_message = Message(
+        conversation_id=conversation_id,
+        role='assistant',
+        content=ai_response_content,
+        metadata=json.dumps({'model': 'claude-sonnet-4-5'})
+    )
+    db.session.add(assistant_message)
+
+    # Update conversation timestamp
+    conversation.updated_at = datetime.utcnow()
+    db.session.commit()
+
+    return jsonify({
+        'user_message': user_message.to_dict(),
+        'assistant_message': assistant_message.to_dict()
+    }), 201
+
+def get_ai_response(conversation_id, user_message):
+    """
+    Get AI response using Claude API
+    This is a placeholder implementation. In production, you would:
+    1. Fetch conversation history
+    2. Gather context from enabled data sources
+    3. Call Claude API with proper prompt engineering
+    4. Return the AI response
+    """
+    # Check if Claude API key is configured
+    api_key = os.environ.get('ANTHROPIC_API_KEY')
+
+    if not api_key:
+        return "⚠️ AI Assistant not configured. Please set ANTHROPIC_API_KEY environment variable to enable AI responses. For now, I'm a placeholder response!"
+
+    try:
+        # Import anthropic SDK
+        import anthropic
+
+        # Get conversation history
+        messages = Message.query.filter_by(conversation_id=conversation_id).order_by(Message.created_at.asc()).all()
+
+        # Build message history for Claude API
+        claude_messages = []
+        for msg in messages:
+            claude_messages.append({
+                "role": msg.role,
+                "content": msg.content
+            })
+
+        # Add current user message
+        claude_messages.append({
+            "role": "user",
+            "content": user_message
+        })
+
+        # Get enabled data sources context
+        data_sources = DataSource.query.filter_by(enabled=True).all()
+        context_info = []
+        for ds in data_sources:
+            contexts = Context.query.filter_by(data_source_id=ds.id).order_by(Context.created_at.desc()).limit(5).all()
+            if contexts:
+                context_info.append(f"\n--- {ds.name} Data ---")
+                for ctx in contexts:
+                    context_info.append(ctx.summary or ctx.content[:200])
+
+        # Build system prompt with context
+        system_prompt = f"""You are a highly customized AI assistant built for a senior software engineer at Meta.
+You have access to various data sources and can provide contextual, intelligent responses.
+
+Available data sources: {', '.join([ds.name for ds in data_sources])}
+
+{chr(10).join(context_info) if context_info else 'No additional context available.'}
+
+Provide helpful, accurate, and context-aware responses."""
+
+        # Call Claude API
+        client = anthropic.Anthropic(api_key=api_key)
+        response = client.messages.create(
+            model="claude-sonnet-4-5-20250929",
+            max_tokens=2048,
+            system=system_prompt,
+            messages=claude_messages
+        )
+
+        return response.content[0].text
+
+    except ImportError:
+        return "⚠️ Anthropic SDK not installed. Run: pip install anthropic"
+    except Exception as e:
+        return f"⚠️ Error getting AI response: {str(e)}"
+
+# ==================== DATA SOURCE ROUTES ====================
+
+@app.route('/api/data-sources', methods=['GET'])
+def get_data_sources():
+    """Get all data sources"""
+    data_sources = DataSource.query.order_by(DataSource.name).all()
+    return jsonify([ds.to_dict() for ds in data_sources]), 200
+
+@app.route('/api/data-sources', methods=['POST'])
+def create_data_source():
+    """Create a new data source"""
+    data = request.get_json()
+
+    if not data or 'name' not in data or 'type' not in data:
+        return jsonify({'error': 'Name and type are required'}), 400
+
+    data_source = DataSource(
+        name=data['name'],
+        type=data['type'],
+        enabled=data.get('enabled', True),
+        config=json.dumps(data.get('config', {}))
+    )
+
+    db.session.add(data_source)
+    db.session.commit()
+
+    return jsonify(data_source.to_dict()), 201
+
+@app.route('/api/data-sources/<int:data_source_id>', methods=['PUT'])
+def update_data_source(data_source_id):
+    """Update a data source"""
+    data_source = DataSource.query.get_or_404(data_source_id)
     data = request.get_json()
 
     if not data:
         return jsonify({'error': 'No data provided'}), 400
 
-    task.title = data.get('title', task.title)
-    task.description = data.get('description', task.description)
-    task.completed = data.get('completed', task.completed)
+    if 'name' in data:
+        data_source.name = data['name']
+    if 'type' in data:
+        data_source.type = data['type']
+    if 'enabled' in data:
+        data_source.enabled = data['enabled']
+    if 'config' in data:
+        data_source.config = json.dumps(data['config'])
 
     db.session.commit()
 
-    return jsonify(task.to_dict()), 200
+    return jsonify(data_source.to_dict()), 200
 
-@app.route('/api/tasks/<int:task_id>', methods=['DELETE'])
-def delete_task(task_id):
-    """DELETE: Delete a task"""
-    task = Task.query.get_or_404(task_id)
-    db.session.delete(task)
+@app.route('/api/data-sources/<int:data_source_id>', methods=['DELETE'])
+def delete_data_source(data_source_id):
+    """Delete a data source"""
+    data_source = DataSource.query.get_or_404(data_source_id)
+    db.session.delete(data_source)
     db.session.commit()
 
-    return jsonify({'message': 'Task deleted successfully'}), 200
+    return jsonify({'message': 'Data source deleted successfully'}), 200
+
+# ==================== CONTEXT ROUTES ====================
+
+@app.route('/api/data-sources/<int:data_source_id>/contexts', methods=['POST'])
+def add_context(data_source_id):
+    """Add context to a data source"""
+    data_source = DataSource.query.get_or_404(data_source_id)
+    data = request.get_json()
+
+    if not data or 'content' not in data:
+        return jsonify({'error': 'Content is required'}), 400
+
+    context = Context(
+        data_source_id=data_source_id,
+        content=data['content'],
+        summary=data.get('summary')
+    )
+
+    db.session.add(context)
+    db.session.commit()
+
+    return jsonify(context.to_dict()), 201
+
+# ==================== HEALTH CHECK ====================
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
-    return jsonify({'status': 'healthy', 'message': 'Backend is running'}), 200
+    return jsonify({
+        'status': 'healthy',
+        'message': 'AI Assistant Backend is running',
+        'anthropic_configured': bool(os.environ.get('ANTHROPIC_API_KEY'))
+    }), 200
 
-# Error handlers
+# ==================== ERROR HANDLERS ====================
+
 @app.errorhandler(404)
 def not_found(error):
     return jsonify({'error': 'Resource not found'}), 404

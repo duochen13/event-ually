@@ -10,36 +10,86 @@ const api = axios.create({
   },
 });
 
-export const taskAPI = {
-  // GET all tasks
-  getAllTasks: async () => {
-    const response = await api.get('/tasks');
+export const chatAPI = {
+  // ============ Conversation Operations ============
+
+  // GET all conversations
+  getAllConversations: async () => {
+    const response = await api.get('/conversations');
     return response.data;
   },
 
-  // GET single task
-  getTask: async (id) => {
-    const response = await api.get(`/tasks/${id}`);
+  // GET single conversation with messages
+  getConversation: async (id) => {
+    const response = await api.get(`/conversations/${id}`);
     return response.data;
   },
 
-  // POST create task
-  createTask: async (taskData) => {
-    const response = await api.post('/tasks', taskData);
+  // POST create conversation
+  createConversation: async (title) => {
+    const response = await api.post('/conversations', { title });
     return response.data;
   },
 
-  // PUT update task
-  updateTask: async (id, taskData) => {
-    const response = await api.put(`/tasks/${id}`, taskData);
+  // DELETE conversation
+  deleteConversation: async (id) => {
+    const response = await api.delete(`/conversations/${id}`);
     return response.data;
   },
 
-  // DELETE task
-  deleteTask: async (id) => {
-    const response = await api.delete(`/tasks/${id}`);
+  // PUT update conversation title
+  updateConversationTitle: async (id, title) => {
+    const response = await api.put(`/conversations/${id}/title`, { title });
     return response.data;
   },
+
+  // ============ Message Operations ============
+
+  // POST send message and get AI response
+  sendMessage: async (conversationId, content, metadata = {}) => {
+    const response = await api.post(`/conversations/${conversationId}/messages`, {
+      content,
+      metadata,
+    });
+    return response.data;
+  },
+
+  // ============ Data Source Operations ============
+
+  // GET all data sources
+  getAllDataSources: async () => {
+    const response = await api.get('/data-sources');
+    return response.data;
+  },
+
+  // POST create data source
+  createDataSource: async (dataSourceData) => {
+    const response = await api.post('/data-sources', dataSourceData);
+    return response.data;
+  },
+
+  // PUT update data source
+  updateDataSource: async (id, dataSourceData) => {
+    const response = await api.put(`/data-sources/${id}`, dataSourceData);
+    return response.data;
+  },
+
+  // DELETE data source
+  deleteDataSource: async (id) => {
+    const response = await api.delete(`/data-sources/${id}`);
+    return response.data;
+  },
+
+  // POST add context to data source
+  addContext: async (dataSourceId, content, summary = null) => {
+    const response = await api.post(`/data-sources/${dataSourceId}/contexts`, {
+      content,
+      summary,
+    });
+    return response.data;
+  },
+
+  // ============ Health Check ============
 
   // Health check
   healthCheck: async () => {
