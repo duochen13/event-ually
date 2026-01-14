@@ -1,7 +1,6 @@
 .chat-message {
   margin-bottom: 1.5rem;
-  padding: 1rem;
-  border-radius: 8px;
+  padding: 1.5rem;
   animation: fadeIn 0.3s ease-in;
 }
 
@@ -17,56 +16,59 @@
 }
 
 .user-message {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  margin-left: 10%;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  background: #f7f7f7;
+  color: #1a1a1a;
+  border-left: 3px solid #1a1a1a;
 }
 
 .assistant-message {
-  background: #f7fafc;
-  color: #2d3748;
-  margin-right: 10%;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  color: #1a1a1a;
+  border-left: 3px solid #10a37f;
 }
 
 .message-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
-  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .user-message .message-header {
-  color: rgba(255, 255, 255, 0.9);
+  color: #1a1a1a;
 }
 
 .assistant-message .message-header {
-  color: #718096;
+  color: #10a37f;
 }
 
 .message-role {
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.75rem;
 }
 
 .message-time {
   font-size: 0.75rem;
-  opacity: 0.8;
+  color: #999999;
+  font-weight: 400;
 }
 
 .message-content {
   white-space: pre-wrap;
   word-wrap: break-word;
   line-height: 1.6;
-  font-size: 0.95rem;
+  font-size: 0.9375rem;
+  color: #1a1a1a;
+  font-weight: 400;
 }
 
 .user-message .message-content {
-  color: white;
+  color: #1a1a1a;
 }
 
 .assistant-message .message-content {
-  color: #2d3748;
+  color: #1a1a1a;
 }
