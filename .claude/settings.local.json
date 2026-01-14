@@ -20,7 +20,9 @@
       "Bash(xargs kill:*)",
       "Bash(python3 -m pip install:*)",
       "Bash(python3:*)",
-      "Bash(kill:*)"
+      "Bash(kill:*)",
+      "Bash(open http://localhost:5173)",
+      "Bash(sqlite3:*)"
     ]
   }
 }
