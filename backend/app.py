@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from config import Config
 from models import db, Conversation, Message, DataSource, Context
+from commands.command_parser import is_command, route_command
 import os
 import json
 from datetime import datetime
@@ -98,8 +99,14 @@ def send_message(conversation_id):
     )
     db.session.add(user_message)
 
-    # Get AI response (placeholder for now)
-    ai_response_content = get_ai_response(conversation_id, data['content'])
+    # Check if message is a command
+    content = data['content']
+    if is_command(content):
+        # Route to command handler
+        ai_response_content = route_command(content, conversation_id)
+    else:
+        # Get normal AI response
+        ai_response_content = get_ai_response(conversation_id, content)
 
     # Create assistant message
     assistant_message = Message(

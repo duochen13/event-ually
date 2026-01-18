@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
 import './ChatMessage.css';
 
 function ChatMessage({ message }) {
@@ -13,6 +14,15 @@ function ChatMessage({ message }) {
     });
   };
 
+  // Detect if content contains markdown (headers, lists, bold, etc.)
+  const isMarkdown = !isUser && (
+    content.includes('\n## ') ||
+    content.includes('\n### ') ||
+    content.includes('\n- ') ||
+    content.includes('**') ||
+    content.includes('# Daily Browsing Review')
+  );
+
   return (
     <div className={`chat-message ${isUser ? 'user-message' : 'assistant-message'}`}>
       <div className="message-header">
@@ -20,7 +30,11 @@ function ChatMessage({ message }) {
         <span className="message-time">{formatTime(created_at)}</span>
       </div>
       <div className="message-content">
-        {content}
+        {isMarkdown ? (
+          <ReactMarkdown>{content}</ReactMarkdown>
+        ) : (
+          content
+        )}
       </div>
     </div>
   );
