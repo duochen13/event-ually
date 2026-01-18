@@ -4,6 +4,7 @@ Report Generator
 Generates formatted markdown reports from browsing history analysis.
 """
 
+import json
 from typing import List, Dict
 from datetime import datetime
 from . import visit_analyzer
@@ -31,8 +32,15 @@ def generate_report(
     # Aggregate by category
     category_data = categorizer.aggregate_by_category(domain_data, categories)
 
+    # Generate chart data
+    chart_data = generate_chart_data(category_data)
+
     # Build report sections
     report_parts = []
+
+    # Add chart data as JSON (will be parsed by frontend)
+    chart_json = json.dumps(chart_data)
+    report_parts.append(f'```chart\n{chart_json}\n```')
 
     # Header
     report_parts.append(format_header())
@@ -55,6 +63,44 @@ def generate_report(
     report = '\n\n'.join(report_parts)
 
     return report
+
+
+def generate_chart_data(category_data: Dict[str, Dict]) -> Dict:
+    """
+    Generate chart data for frontend visualization.
+
+    Args:
+        category_data: Aggregated category data
+
+    Returns:
+        Dictionary with chart configuration and data
+    """
+    # Sort categories by duration
+    categories = list(category_data.values())
+    categories.sort(key=lambda c: c['total_duration'], reverse=True)
+
+    # Prepare data for bar chart
+    chart_items = []
+    for cat in categories:
+        if cat['total_duration'] > 0:
+            category_name = cat['category'].replace('_', ' ').title()
+            duration_minutes = cat['total_duration'] / 60
+
+            chart_items.append({
+                'category': category_name,
+                'minutes': round(duration_minutes, 1),
+                'hours': round(duration_minutes / 60, 2),
+                'visits': cat['visit_count']
+            })
+
+    return {
+        'type': 'bar',
+        'title': 'Time Spent by Category',
+        'data': chart_items,
+        'xAxis': 'category',
+        'yAxis': 'minutes',
+        'yAxisLabel': 'Time (minutes)'
+    }
 
 
 def format_header() -> str:
