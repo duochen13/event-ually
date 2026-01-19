@@ -8,6 +8,8 @@ function ConversationList({
   onSelectConversation,
   onNewConversation,
   onDeleteConversation,
+  selectedHistoryDate,
+  onSelectHistoryDate,
 }) {
   const [activeTab, setActiveTab] = useState('conversations');
 
@@ -116,7 +118,10 @@ function ConversationList({
       {/* Browsing History View */}
       {activeTab === 'history' && (
         <div className="history-tab-content">
-          <BrowsingHistory />
+          <BrowsingHistory
+            selectedDate={selectedHistoryDate}
+            onSelectDate={onSelectHistoryDate}
+          />
         </div>
       )}
     </div>

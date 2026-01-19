@@ -28,23 +28,70 @@
   padding: 5px;
 }
 
-.history-item {
-  padding: 12px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
+/* Compact History Item */
+.history-item-compact {
+  padding: 10px 12px;
+  background-color: #2d2d2d;
+  border-radius: 6px;
+  border: 1px solid #404040;
   transition: all 0.2s;
+  cursor: pointer;
+  user-select: none;
 }
 
-.history-item:hover {
-  background-color: #f0f0f0;
-  border-color: #d0d0d0;
+.history-item-compact:hover {
+  background-color: #353535;
+  border-color: #505050;
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.history-item.no-data {
-  opacity: 0.6;
+.history-item-compact.selected {
+  background-color: #1e3a5f;
+  border-color: #4a9eff;
+}
+
+.history-item-compact.no-data {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.history-item-compact.no-data:hover {
+  transform: none;
+}
+
+.compact-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.compact-day {
+  font-weight: 600;
+  font-size: 13px;
+  color: #ffffff;
+}
+
+.compact-date {
+  font-size: 11px;
+  color: #888;
+}
+
+.compact-stats {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.compact-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #bbb;
+}
+
+.compact-stat .stat-icon {
+  font-size: 12px;
 }
 
 .history-date {

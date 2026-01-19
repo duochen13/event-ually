@@ -3,6 +3,7 @@ import { chatAPI } from './services/api';
 import ConversationList from './components/ConversationList';
 import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
+import BrowsingHistoryDetail from './components/BrowsingHistoryDetail';
 import './App.css';
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
   const [healthStatus, setHealthStatus] = useState(null);
+  const [selectedHistoryDate, setSelectedHistoryDate] = useState(null);
 
   const messagesEndRef = useRef(null);
 
@@ -137,6 +139,12 @@ function App() {
     }
   };
 
+  const handleSelectHistoryDate = (date) => {
+    setSelectedHistoryDate(date);
+    // Clear active conversation when viewing history
+    setActiveConversationId(null);
+  };
+
   return (
     <div className="app">
       <ConversationList
@@ -145,6 +153,8 @@ function App() {
         onSelectConversation={handleSelectConversation}
         onNewConversation={handleNewConversation}
         onDeleteConversation={handleDeleteConversation}
+        selectedHistoryDate={selectedHistoryDate}
+        onSelectHistoryDate={handleSelectHistoryDate}
       />
 
       <div className="chat-container">
@@ -161,7 +171,9 @@ function App() {
         </header>
 
         <main className="chat-main">
-          {!activeConversationId ? (
+          {selectedHistoryDate ? (
+            <BrowsingHistoryDetail selectedDate={selectedHistoryDate} />
+          ) : !activeConversationId ? (
             <div className="empty-state">
               <h2>Welcome to your AI Assistant</h2>
               <p>Select a conversation or create a new one to get started</p>
@@ -199,7 +211,7 @@ function App() {
           )}
         </main>
 
-        {activeConversationId && (
+        {activeConversationId && !selectedHistoryDate && (
           <ChatInput onSend={handleSendMessage} disabled={sending} />
         )}
       </div>

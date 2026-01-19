@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { chatAPI } from '../services/api';
 import './BrowsingHistory.css';
 
-function BrowsingHistory() {
+function BrowsingHistory({ selectedDate, onSelectDate }) {
   const [dailyStats, setDailyStats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingItems, setLoadingItems] = useState(new Set());
@@ -126,10 +126,9 @@ function BrowsingHistory() {
   }
 
   const renderSkeletonItem = () => (
-    <div className="history-item skeleton-item">
+    <div className="history-item-compact skeleton-item">
       <div className="skeleton-line skeleton-date"></div>
       <div className="skeleton-line skeleton-stats"></div>
-      <div className="skeleton-line skeleton-category"></div>
     </div>
   );
 
@@ -143,41 +142,31 @@ function BrowsingHistory() {
           <div className="no-history">No browsing data available</div>
         ) : (
           <div className="history-list">
-            {/* Show loaded items */}
+            {/* Show loaded items - COMPACT VERSION */}
             {dailyStats.map((day, index) => (
               <div
                 key={index}
-                className={`history-item ${day.total_visits === 0 ? 'no-data' : ''}`}
+                className={`history-item-compact ${
+                  day.total_visits === 0 ? 'no-data' : ''
+                } ${selectedDate === day.date ? 'selected' : ''}`}
+                onClick={() => day.total_visits > 0 && onSelectDate(day.date)}
               >
-                <div className="history-date">
-                  <span className="day-label">{formatDate(day.date, day.day_name)}</span>
-                  <span className="date-label">{day.date.slice(5)}</span>
+                <div className="compact-header">
+                  <span className="compact-day">{formatDate(day.date, day.day_name)}</span>
+                  <span className="compact-date">{day.date.slice(5)}</span>
                 </div>
 
                 {day.total_visits > 0 ? (
-                  <>
-                    <div className="history-stats">
-                      <div className="stat">
-                        <span className="stat-icon">🕒</span>
-                        <span className="stat-value">{formatDuration(day.total_time)}</span>
-                      </div>
-                      <div className="stat">
-                        <span className="stat-icon">🌐</span>
-                        <span className="stat-value">{day.total_visits}</span>
-                      </div>
-                    </div>
-
-                    {day.top_category && (
-                      <div className="top-category">
-                        <span className="category-badge">
-                          {day.top_category.name}
-                        </span>
-                        <span className="category-percent">
-                          {day.top_category.percentage}%
-                        </span>
-                      </div>
-                    )}
-                  </>
+                  <div className="compact-stats">
+                    <span className="compact-stat">
+                      <span className="stat-icon">🕒</span>
+                      {formatDuration(day.total_time)}
+                    </span>
+                    <span className="compact-stat">
+                      <span className="stat-icon">🔗</span>
+                      {day.total_visits} URLs
+                    </span>
+                  </div>
                 ) : (
                   <div className="no-activity">No activity</div>
                 )}
