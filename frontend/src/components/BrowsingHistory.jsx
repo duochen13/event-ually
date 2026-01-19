@@ -6,7 +6,6 @@ function BrowsingHistory() {
   const [dailyStats, setDailyStats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [expanded, setExpanded] = useState(true);
 
   useEffect(() => {
     fetchBrowsingHistory();
@@ -56,9 +55,6 @@ function BrowsingHistory() {
   if (loading) {
     return (
       <div className="browsing-history">
-        <div className="history-header">
-          <h3>Browsing History</h3>
-        </div>
         <div className="history-loading">Loading...</div>
       </div>
     );
@@ -67,9 +63,6 @@ function BrowsingHistory() {
   if (error) {
     return (
       <div className="browsing-history">
-        <div className="history-header">
-          <h3>Browsing History</h3>
-        </div>
         <div className="history-error">{error}</div>
       </div>
     );
@@ -77,64 +70,57 @@ function BrowsingHistory() {
 
   return (
     <div className="browsing-history">
-      <div className="history-header" onClick={() => setExpanded(!expanded)}>
-        <h3>Browsing History</h3>
-        <span className="toggle-icon">{expanded ? '▼' : '▶'}</span>
-      </div>
-
-      {expanded && (
-        <div className="history-content">
-          {dailyStats.length === 0 ? (
-            <div className="no-history">No browsing data available</div>
-          ) : (
-            <div className="history-list">
-              {dailyStats.map((day, index) => (
-                <div
-                  key={index}
-                  className={`history-item ${day.total_visits === 0 ? 'no-data' : ''}`}
-                >
-                  <div className="history-date">
-                    <span className="day-label">{formatDate(day.date, day.day_name)}</span>
-                    <span className="date-label">{day.date.slice(5)}</span>
-                  </div>
-
-                  {day.total_visits > 0 ? (
-                    <>
-                      <div className="history-stats">
-                        <div className="stat">
-                          <span className="stat-icon">🕒</span>
-                          <span className="stat-value">{formatDuration(day.total_time)}</span>
-                        </div>
-                        <div className="stat">
-                          <span className="stat-icon">🌐</span>
-                          <span className="stat-value">{day.total_visits}</span>
-                        </div>
-                      </div>
-
-                      {day.top_category && (
-                        <div className="top-category">
-                          <span className="category-badge">
-                            {day.top_category.name}
-                          </span>
-                          <span className="category-percent">
-                            {day.top_category.percentage}%
-                          </span>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="no-activity">No activity</div>
-                  )}
+      <div className="history-content">
+        {dailyStats.length === 0 ? (
+          <div className="no-history">No browsing data available</div>
+        ) : (
+          <div className="history-list">
+            {dailyStats.map((day, index) => (
+              <div
+                key={index}
+                className={`history-item ${day.total_visits === 0 ? 'no-data' : ''}`}
+              >
+                <div className="history-date">
+                  <span className="day-label">{formatDate(day.date, day.day_name)}</span>
+                  <span className="date-label">{day.date.slice(5)}</span>
                 </div>
-              ))}
-            </div>
-          )}
 
-          <button className="refresh-button" onClick={fetchBrowsingHistory}>
-            ↻ Refresh
-          </button>
-        </div>
-      )}
+                {day.total_visits > 0 ? (
+                  <>
+                    <div className="history-stats">
+                      <div className="stat">
+                        <span className="stat-icon">🕒</span>
+                        <span className="stat-value">{formatDuration(day.total_time)}</span>
+                      </div>
+                      <div className="stat">
+                        <span className="stat-icon">🌐</span>
+                        <span className="stat-value">{day.total_visits}</span>
+                      </div>
+                    </div>
+
+                    {day.top_category && (
+                      <div className="top-category">
+                        <span className="category-badge">
+                          {day.top_category.name}
+                        </span>
+                        <span className="category-percent">
+                          {day.top_category.percentage}%
+                        </span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="no-activity">No activity</div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <button className="refresh-button" onClick={fetchBrowsingHistory}>
+          ↻ Refresh
+        </button>
+      </div>
     </div>
   );
 }
