@@ -1,4 +1,5 @@
 import React from 'react';
+import BrowsingHistory from './BrowsingHistory';
 import './ConversationList.css';
 
 function ConversationList({
@@ -81,6 +82,8 @@ function ConversationList({
           ))
         )}
       </div>
+
+      <BrowsingHistory />
     </div>
   );
 }

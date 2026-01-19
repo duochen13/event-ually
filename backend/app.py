@@ -3,6 +3,7 @@ from flask_cors import CORS
 from config import Config
 from models import db, Conversation, Message, DataSource, Context
 from commands.command_parser import is_command, route_command
+from browsing_stats import get_daily_stats, get_weekly_summary
 import os
 import json
 from datetime import datetime
@@ -278,6 +279,29 @@ def add_context(data_source_id):
     db.session.commit()
 
     return jsonify(context.to_dict()), 201
+
+# ==================== BROWSING HISTORY STATS ====================
+
+@app.route('/api/browsing-history/daily', methods=['GET'])
+def get_daily_browsing_stats():
+    """Get daily browsing statistics for the last N days"""
+    try:
+        days = request.args.get('days', default=7, type=int)
+        days = min(days, 30)  # Cap at 30 days max
+
+        stats = get_daily_stats(days=days)
+        return jsonify({'daily_stats': stats}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/browsing-history/weekly', methods=['GET'])
+def get_weekly_browsing_stats():
+    """Get weekly browsing summary"""
+    try:
+        summary = get_weekly_summary()
+        return jsonify(summary), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # ==================== HEALTH CHECK ====================
 

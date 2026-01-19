@@ -89,6 +89,20 @@ export const chatAPI = {
     return response.data;
   },
 
+  // ============ Browsing History Stats ============
+
+  // GET daily browsing stats
+  getDailyBrowsingStats: async (days = 7) => {
+    const response = await api.get(`/browsing-history/daily?days=${days}`);
+    return response.data;
+  },
+
+  // GET weekly browsing summary
+  getWeeklyBrowsingSummary: async () => {
+    const response = await api.get('/browsing-history/weekly');
+    return response.data;
+  },
+
   // ============ Health Check ============
 
   // Health check
