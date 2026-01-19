@@ -1,17 +1,74 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { chatAPI } from '../services/api';
 import './BrowsingHistory.css';
 
 function BrowsingHistory() {
   const [dailyStats, setDailyStats] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingItems, setLoadingItems] = useState(new Set());
   const [error, setError] = useState(null);
+  const isLoadingRef = useRef(false);
 
   useEffect(() => {
-    fetchBrowsingHistory();
+    fetchBrowsingHistoryProgressive();
   }, []);
 
+  const fetchBrowsingHistoryProgressive = async () => {
+    if (isLoadingRef.current) return;
+    isLoadingRef.current = true;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Step 1: Load today's data first (fast)
+      const todayData = await chatAPI.getDailyBrowsingStats(1);
+      if (todayData.daily_stats && todayData.daily_stats.length > 0) {
+        setDailyStats(todayData.daily_stats);
+        setLoading(false);
+      }
+
+      // Step 2: Load remaining days in background
+      const remainingDays = [2, 3, 4, 5, 6, 7];
+
+      for (const dayCount of remainingDays) {
+        setLoadingItems(prev => new Set([...prev, dayCount]));
+
+        try {
+          const data = await chatAPI.getDailyBrowsingStats(dayCount);
+
+          if (data.daily_stats && data.daily_stats.length > 0) {
+            // Get the new days (all except the first one which we already have)
+            const newDays = data.daily_stats.slice(1);
+
+            setDailyStats(prev => {
+              // Merge new days, avoiding duplicates
+              const existingDates = new Set(prev.map(d => d.date));
+              const uniqueNewDays = newDays.filter(d => !existingDates.has(d.date));
+              return [...prev, ...uniqueNewDays];
+            });
+          }
+        } catch (err) {
+          console.error(`Error loading day ${dayCount}:`, err);
+        } finally {
+          setLoadingItems(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(dayCount);
+            return newSet;
+          });
+        }
+      }
+    } catch (err) {
+      setError('Failed to load browsing history');
+      console.error('Error fetching browsing history:', err);
+      setLoading(false);
+    } finally {
+      isLoadingRef.current = false;
+    }
+  };
+
   const fetchBrowsingHistory = async () => {
+    // Fallback: load all at once
     try {
       setLoading(true);
       setError(null);
@@ -68,13 +125,25 @@ function BrowsingHistory() {
     );
   }
 
+  const renderSkeletonItem = () => (
+    <div className="history-item skeleton-item">
+      <div className="skeleton-line skeleton-date"></div>
+      <div className="skeleton-line skeleton-stats"></div>
+      <div className="skeleton-line skeleton-category"></div>
+    </div>
+  );
+
+  const totalDaysToShow = 7;
+  const skeletonCount = Math.max(0, totalDaysToShow - dailyStats.length);
+
   return (
     <div className="browsing-history">
       <div className="history-content">
-        {dailyStats.length === 0 ? (
+        {dailyStats.length === 0 && !loading ? (
           <div className="no-history">No browsing data available</div>
         ) : (
           <div className="history-list">
+            {/* Show loaded items */}
             {dailyStats.map((day, index) => (
               <div
                 key={index}
@@ -114,10 +183,21 @@ function BrowsingHistory() {
                 )}
               </div>
             ))}
+
+            {/* Show skeleton loaders for items still loading */}
+            {loadingItems.size > 0 && Array.from({ length: skeletonCount }).map((_, idx) => (
+              <React.Fragment key={`skeleton-${idx}`}>
+                {renderSkeletonItem()}
+              </React.Fragment>
+            ))}
           </div>
         )}
 
-        <button className="refresh-button" onClick={fetchBrowsingHistory}>
+        <button
+          className="refresh-button"
+          onClick={fetchBrowsingHistoryProgressive}
+          disabled={loading && dailyStats.length === 0}
+        >
           ↻ Refresh
         </button>
       </div>

@@ -143,6 +143,59 @@
   transform: scale(0.98);
 }
 
+.refresh-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Skeleton Loading Animation */
+.skeleton-item {
+  background-color: #f5f5f5;
+  pointer-events: none;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-line {
+  background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.skeleton-date {
+  height: 18px;
+  width: 60%;
+}
+
+.skeleton-stats {
+  height: 16px;
+  width: 80%;
+}
+
+.skeleton-category {
+  height: 20px;
+  width: 50%;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
 /* Scrollbar styling */
 .history-list::-webkit-scrollbar {
   width: 6px;
